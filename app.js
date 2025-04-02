@@ -42,21 +42,31 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
 app.get("/", recaptcha.middleware.render, (req, res) => {
+  // Log query parameters when accessing the front-end
+  console.log('Query parameters:', req.query);
+  
+  // Get values from query parameters with fallback to empty string
+  const subject = req.query.subject || '';
+  const description = req.query.description || '';
+  const shopify_order_id = req.query.shopify_order_id || '';
+  const name = req.query.name || '';
+  const email = req.query.email || '';
+  
   const form = `
     <form action="/submit" method="post" enctype="multipart/form-data">
     <div>
         <label for="subject">Subject</label><br>
-        <input type="text" name="subject" required><br>
+        <input type="text" name="subject" value="${subject}" required><br>
         <label for="description">Description</label><br>
-        <textarea name="description" rows="6" required></textarea><br>
+        <textarea name="description" rows="6" required>${description}</textarea><br>
         <label for="shopify_order_id">Shopify Order ID</label><br>
-        <input type="text" name="shopify_order_id"><br>
+        <input type="text" name="shopify_order_id" value="${shopify_order_id}"><br>
         <label for="attachment">Attachment (optional, max 5MB)</label><br>
         <input type="file" name="attachment"><br>
         <label for="name">Name</label><br>
-        <input type="text" name="name" required><br>
+        <input type="text" name="name" value="${name}" required><br>
         <label for="email">Email</label><br>
-        <input type="email" name="email" required><br><br>
+        <input type="email" name="email" value="${email}" required><br><br>
     </div>
     <div>
         ${recaptcha.render()}
