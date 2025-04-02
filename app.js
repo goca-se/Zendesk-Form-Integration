@@ -7,7 +7,21 @@ const fs = require("fs")
 const path = require("path")
 
 const app = express()
-const port = 3000
+const port = process.env.PORT || 3000
+
+// Adicionar middleware para CORS
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  
+  // Responder imediatamente a requisições OPTIONS
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
 
 // Configure multer storage
 const storage = multer.diskStorage({
@@ -41,7 +55,17 @@ const recaptcha = new Recaptcha(RECAPTCHA_SITE_KEY, RECAPTCHA_SECRET_KEY)
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
-app.get("/", recaptcha.middleware.render, (req, res) => {
+// Manter a página informativa na raiz
+app.get("/", (req, res) => {
+  res.send(`
+    <h1>Ticket Form API</h1>
+    <p>Este é um servidor de API para processamento de formulários de contato.</p>
+    <p>Para enviar um formulário, faça uma requisição POST para /submit.</p>
+  `);
+});
+
+// Mover o formulário para /form
+app.get("/form", recaptcha.middleware.render, (req, res) => {
   const form = `
     <form action="/submit" method="post" enctype="multipart/form-data">
     <div>
