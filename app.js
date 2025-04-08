@@ -9,23 +9,9 @@ require('dotenv').config() // Carrega variáveis do arquivo .env
 const app = express()
 const port = 3000
 
-// Configure multer storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, "uploads");
-    // Ensure uploads directory exists
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir);
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-  }
-})
-
+// Configure multer to use memory storage instead of disk storage
 const upload = multer({ 
-  storage: storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 })
 
@@ -125,10 +111,9 @@ app.post("/submit", upload.single('attachment'), async (req, res) => {
     
     // Handle file attachment if present
     if (req.file) {
-      console.log('File uploaded:', req.file);
+      console.log('File uploaded:', req.file.originalname);
       
-      // First upload the file to Zendesk
-      const fileContent = fs.readFileSync(req.file.path);
+      // Upload the file directly from memory to Zendesk
       const fileUploadResponse = await axios({
         method: 'POST',
         url: `https://${ZENDESK_SUBDOMAIN}/api/v2/uploads.json?filename=${encodeURIComponent(req.file.originalname)}`,
@@ -140,7 +125,7 @@ app.post("/submit", upload.single('attachment'), async (req, res) => {
           username: `${ZENDESK_USER_EMAIL}/token`,
           password: ZENDESK_API_TOKEN
         },
-        data: fileContent,
+        data: req.file.buffer,
         validateStatus: () => true
       });
       
@@ -152,9 +137,6 @@ app.post("/submit", upload.single('attachment'), async (req, res) => {
       } else {
         console.error('Failed to upload file to Zendesk:', fileUploadResponse.status, fileUploadResponse.data);
       }
-      
-      // Clean up the temporary file
-      fs.unlinkSync(req.file.path);
     }
     
     const options = {
