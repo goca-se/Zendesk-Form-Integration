@@ -4,6 +4,7 @@ const axios = require("axios")
 const multer = require("multer")
 const fs = require("fs")
 const path = require("path")
+require('dotenv').config() // Carrega variáveis do arquivo .env
 
 const app = express()
 const port = 3000
@@ -28,10 +29,10 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 })
 
-// In production, store credentials in environment variables
-const ZENDESK_SUBDOMAIN = "pottd.zendesk.com"
-const ZENDESK_USER_EMAIL = "hello@getpottd.com"
-const ZENDESK_API_TOKEN = "7TPcWrjMTEoavMX1BS7lTvgLlDrhdiRMioGbqZjD"
+// Use environment variables instead of hardcoded credentials
+const ZENDESK_SUBDOMAIN = process.env.ZENDESK_SUBDOMAIN
+const ZENDESK_USER_EMAIL = process.env.ZENDESK_USER_EMAIL
+const ZENDESK_API_TOKEN = process.env.ZENDESK_API_TOKEN
 
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
