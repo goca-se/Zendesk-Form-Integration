@@ -105,7 +105,8 @@ app.post("/submit", upload.single('attachment'), async (req, res) => {
       request: {
         subject: req.body.subject,
         comment: {
-          body: descriptionText
+          body: descriptionText,
+          public: false
         },
         requester: {
           name: req.body.name,
