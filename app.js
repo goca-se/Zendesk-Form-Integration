@@ -95,6 +95,11 @@ app.post("/submit", upload.single('attachment'), async (req, res) => {
       descriptionText = `Shopify Order ID: ${req.body.shopify_order_id}\n\n${descriptionText}`;
     }
     
+    // Add origin to the description if provided
+    if (req.body.origin) {
+      descriptionText = `${req.body.origin}\n\n${descriptionText}`;
+    }
+    
     // Base request data without attachments
     const requestData = {
       request: {
