@@ -101,24 +101,33 @@ app.post("/submit", upload.single('attachment'), async (req, res) => {
     }
     
     // Base request data without attachments
+    const customFields = [];
+    if (req.body.zendesk_custom_field_id && req.body.request_type) {
+      customFields.push({
+        id: parseInt(req.body.zendesk_custom_field_id),
+        value: req.body.request_type
+      });
+    }
+
     const requestData = {
-      request: {
+      ticket: {
         subject: req.body.subject,
         comment: {
           body: descriptionText,
-          public: false
+          public: true
         },
         requester: {
           name: req.body.name,
           email: req.body.email
-        }
+        },
+        custom_fields: customFields
       }
     };
-    
+
     // Handle file attachment if present
     if (req.file) {
       console.log('File uploaded:', req.file.originalname);
-      
+
       // Upload the file directly from memory to Zendesk
       const fileUploadResponse = await axios({
         method: 'POST',
@@ -134,20 +143,20 @@ app.post("/submit", upload.single('attachment'), async (req, res) => {
         data: req.file.buffer,
         validateStatus: () => true
       });
-      
+
       if (fileUploadResponse.status >= 200 && fileUploadResponse.status < 300) {
         console.log('File uploaded to Zendesk:', fileUploadResponse.data);
-        
+
         // Add the token to the request
-        requestData.request.comment.uploads = [fileUploadResponse.data.upload.token];
+        requestData.ticket.comment.uploads = [fileUploadResponse.data.upload.token];
       } else {
         console.error('Failed to upload file to Zendesk:', fileUploadResponse.status, fileUploadResponse.data);
       }
     }
-    
+
     const options = {
       method: "POST",
-      url: `https://${ZENDESK_SUBDOMAIN}/api/v2/requests.json`,
+      url: `https://${ZENDESK_SUBDOMAIN}/api/v2/tickets.json`,
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json"
@@ -174,7 +183,7 @@ app.post("/submit", upload.single('attachment'), async (req, res) => {
     const response = await axios(options);
     
     if (response.status >= 200 && response.status < 300) {
-      console.log('Zendesk response success:', response.status, response.data);
+      console.log('Zendesk ticket created:', response.status, response.data.ticket?.id, 'requester_id:', response.data.ticket?.requester_id);
       res.status(200).send("Form submitted successfully");
     } else {
       console.error('Zendesk error response:', response.status, response.data);
