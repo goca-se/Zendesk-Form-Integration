@@ -110,7 +110,7 @@ app.post("/submit", upload.single('attachment'), async (req, res) => {
     }
 
     const requestData = {
-      ticket: {
+      request: {
         subject: req.body.subject,
         comment: {
           body: descriptionText,
@@ -148,7 +148,7 @@ app.post("/submit", upload.single('attachment'), async (req, res) => {
         console.log('File uploaded to Zendesk:', fileUploadResponse.data);
 
         // Add the token to the request
-        requestData.ticket.comment.uploads = [fileUploadResponse.data.upload.token];
+        requestData.request.comment.uploads = [fileUploadResponse.data.upload.token];
       } else {
         console.error('Failed to upload file to Zendesk:', fileUploadResponse.status, fileUploadResponse.data);
       }
@@ -156,7 +156,7 @@ app.post("/submit", upload.single('attachment'), async (req, res) => {
 
     const options = {
       method: "POST",
-      url: `https://${ZENDESK_SUBDOMAIN}/api/v2/tickets.json`,
+      url: `https://${ZENDESK_SUBDOMAIN}/api/v2/requests.json`,
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json"
@@ -183,7 +183,7 @@ app.post("/submit", upload.single('attachment'), async (req, res) => {
     const response = await axios(options);
     
     if (response.status >= 200 && response.status < 300) {
-      console.log('Zendesk ticket created:', response.status, response.data.ticket?.id, 'requester_id:', response.data.ticket?.requester_id);
+      console.log('Zendesk response success:', response.status, response.data);
       res.status(200).send("Form submitted successfully");
     } else {
       console.error('Zendesk error response:', response.status, response.data);
