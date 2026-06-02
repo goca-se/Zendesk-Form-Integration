@@ -172,10 +172,6 @@ app.post("/submit", upload.single('attachment'), async (req, res) => {
       method: options.method,
       url: options.url,
       headers: options.headers,
-      auth: {
-        username: options.auth.username,
-        password: '***'
-      },
       data: options.data
     });
 
