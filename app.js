@@ -161,10 +161,9 @@ app.post("/submit", upload.single('attachment'), async (req, res) => {
         "Content-Type": "application/json",
         "Accept": "application/json"
       },
-      auth: {
-        username: `${ZENDESK_USER_EMAIL}/token`,
-        password: ZENDESK_API_TOKEN
-      },
+      // No agent auth here — requests.json is the end-user API.
+      // Sending auth as agent overrides the requester field with Lucie's account.
+      // Without auth, the requester field in the body is respected.
       data: requestData,
       validateStatus: () => true
     };
